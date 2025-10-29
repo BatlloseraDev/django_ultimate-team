@@ -103,7 +103,7 @@ class Jugador(models.Model):
         }
     def calcular_valoracion(self):
         """
-        Calcula la valoración del jugador en base a sus estadísticas y tipo de jugador
+        Calcula la valoración del jugador basándose en sus estadísticas y tipo de jugador
         :return:
         """
         estadisticas = self.stats()
@@ -124,10 +124,48 @@ class Jugador(models.Model):
         return round(valoracion)
 
     estadistica_final = calcular_valoracion()
-    
+
     def __str__(self):
         return f'{self.nombre} - {self.estadistica_final}'
 
     class Meta:
         verbose_name = "Jugador"
         verbose_name_plural = "Jugadores"
+
+
+class Usuario (models.Model):
+    pass# lo he creado para que no me de error de forma temporal
+
+class Equipo (models.Model):
+    """
+    Modelo para representar a los equipos.
+    """
+    nombre = models.CharField(
+        max_length=100,
+        help_text='Nombre del equipo'
+    )
+    id_usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE
+    )
+
+    descripcion = models.TextField(
+        blank=True,
+        null=True,
+        help_text='Descripción más detallada del equipo.'
+    )
+    jugadores = models.ManyToManyField(
+        Jugador,
+        related_name='equipos',
+        blank=True,
+        null=True,
+        help_text='Jugadores del equipo'
+    )
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = "Equipo"
+        verbose_name_plural = "Equipos"
+
