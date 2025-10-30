@@ -137,9 +137,11 @@ class Jugador(models.Model):
 
 
 class Rol(models.Model):
+    """Modelo que representa el rol de los usuarios"""
     nombre = models.CharField(max_length=20, blank=False, null=False)
 
 class Usuario(models.Model):
+    """Modelo que representa a los usuarios"""
     nombre = models.CharField(max_length=20, blank=False, null=False)
     nick = models.CharField(max_length=15, blank=False, null=False)
     correo = models.EmailField(max_length=30, blank=False, null=False, unique=True)
@@ -154,7 +156,7 @@ class Usuario(models.Model):
     blank=True,
     related_name='propietario'
     )
-    
+
     def __str__(self):
         return self.nombre
 
