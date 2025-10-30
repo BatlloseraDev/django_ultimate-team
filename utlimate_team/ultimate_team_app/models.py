@@ -1,5 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+from datetime import timedelta
 
 class Posicion(models.Model):
     """
@@ -133,8 +136,27 @@ class Jugador(models.Model):
         verbose_name_plural = "Jugadores"
 
 
-class Usuario (models.Model):
-    pass# lo he creado para que no me de error de forma temporal
+class Rol(models.Model):
+    nombre = models.CharField(max_length=20, blank=False, null=False)
+
+class Usuario(models.Model):
+    nombre = models.CharField(max_length=20, blank=False, null=False)
+    nick = models.CharField(max_length=15, blank=False, null=False)
+    correo = models.EmailField(max_length=30, blank=False, null=False, unique=True)
+    password = models.CharField(max_length=15, blank=False, null=False)
+    rol = models.ManyToManyField(Rol, blank=False, null=False)
+    fecha_nacimiento = models.DateField()
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    equipo = models.OneToOneField(
+    'Equipo',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='propietario'
+    )
+    
+    def __str__(self):
+        return self.nombre
 
 class Equipo (models.Model):
     """
