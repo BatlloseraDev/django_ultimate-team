@@ -42,6 +42,15 @@ class Posicion(models.Model):
     def __str__(self):
         return self.significado
 
+class Nacionalidad(models.Model):
+    """
+    Modelo que representa las nacionalidades de los jugadores.
+    """
+    nombre = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text='Nombre del país'
+    )
 
 class Jugador(models.Model):
     """
@@ -52,8 +61,9 @@ class Jugador(models.Model):
         help_text='Nombre del jugador'
     )
 
-    nacionalidad = models.CharField(
-        max_length=100,
+    nacionalidad = models.ForeignKey(
+        Nacionalidad,
+        on_delete=models.PROTECT,
         help_text='Nacionalidad del jugador'
     )
     equipo = models.CharField(
