@@ -18,3 +18,5 @@ for nombre in df.iloc[:, 5]:
         Nacionalidad.objects.get_or_create(nombre=nombre.strip())
 
 
+
+
