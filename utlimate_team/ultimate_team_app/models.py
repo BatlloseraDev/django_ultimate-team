@@ -52,6 +52,13 @@ class Nacionalidad(models.Model):
         help_text='Nombre del país'
     )
 
+    def __str__(self):
+        return self.nombre
+    class Meta:
+        verbose_name = "Nacionalidad"
+        verbose_name_plural = "Nacionalidades"
+
+
 class Jugador(models.Model):
     """
     Modelo para representar a los jugadores en un equipo.
@@ -128,7 +135,7 @@ class Jugador(models.Model):
 
         }
 
-        pos = self.posicion_id.nombre.upper()
+        pos = self.posicion_id.tipo.upper()
         pesos = pesos_por_posicion.get(pos)
         if not pesos:
             return round(sum(estadisticas.values()) / len(estadisticas))
@@ -152,6 +159,12 @@ class Jugador(models.Model):
 class Rol(models.Model):
     """Modelo que representa el rol de los usuarios"""
     nombre = models.CharField(max_length=20, blank=False, null=False)
+    def __str__(self):
+        return f'{self.nombre}'
+    class Meta:
+        verbose_name = "Rol"
+        verbose_name_plural = "Roles"
+
 
 class Usuario(models.Model):
     """Modelo que representa a los usuarios"""

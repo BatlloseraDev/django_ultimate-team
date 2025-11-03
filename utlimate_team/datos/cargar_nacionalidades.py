@@ -9,7 +9,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ultimate_team.settings")
 django.setup()
 
 # Lee el archivo
-archivo = os.path.join(settings.BASE_DIR, "datos", "paisesyterritorios.xls")
+archivo = os.path.join(settings.BASE_DIR, "datos", "paisesyterritorios.xlsx")
 df = pd.read_excel(archivo)
 
 # Guardar nacionalidades en la base de datos (Los países están en la columna 5)

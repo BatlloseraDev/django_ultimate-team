@@ -21,7 +21,8 @@ class Command(BaseCommand):
                 password=fake.password(),
                 fecha_nacimiento=fake.date_of_birth(minimum_age=18, maximum_age=80),
                 fecha_registro=datetime.now().date(),
-                equipo=False,
-                rol=rol_asignado
+                equipo=False
+
             )
             usuario.save()
+            usuario.rol.add(rol_asignado)
