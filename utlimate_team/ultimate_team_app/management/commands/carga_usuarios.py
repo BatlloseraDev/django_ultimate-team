@@ -7,21 +7,12 @@ import random
 
 
 class Command(BaseCommand):
-    """Creación inicial de 30 usuarios (3 de ellos administradores)"""
+    """Creación inicial de 30 usuarios"""
 
     def handle(self, *args, **options):
         fake = Faker('es_ES')
-
-        # Creación de roles
-        rol_administrador = Rol(nombre="administrador")
-        rol_administrador.save()
-
-        rol_usuario = Rol(nombre="usuario")
-        rol_usuario.save()
-
+        rol_asignado= Rol.objects.get(nombre="usuario")
         for i in range(30):
-            # Los tres primeros usuarios serán administradores
-            rol_asignado = rol_administrador if i < 3 else rol_usuario
 
             usuario = Usuario(
                 nombre=fake.first_name(),
