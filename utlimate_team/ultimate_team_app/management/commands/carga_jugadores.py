@@ -30,7 +30,7 @@ class Command(BaseCommand):
                     sho = random.randint(1, 99),
                     pas = random.randint(1, 99),
                     dri = random.randint(1, 99),
-                    def_ = random.randint(1, 99),
+                    defe = random.randint(1, 99),
                     phy = random.randint(1, 99)
                 )
                 jugador.save()
@@ -46,7 +46,7 @@ class Command(BaseCommand):
                     sho=random.randint(1, 99),
                     pas=random.randint(1, 99),
                     dri=random.randint(1, 99),
-                    def_=random.randint(1, 99),
+                    defe=random.randint(1, 99),
                     phy=random.randint(1, 99)
                 )
                 jugador.save()
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                     sho=random.randint(1, 99),
                     pas=random.randint(1, 99),
                     dri=random.randint(1, 99),
-                    def_=random.randint(1, 99),
+                    defe=random.randint(1, 99),
                     phy=random.randint(1, 99)
                 )
                 jugador.save()
@@ -76,7 +76,7 @@ class Command(BaseCommand):
                     sho=random.randint(1, 99),
                     pas=random.randint(1, 99),
                     dri=random.randint(1, 99),
-                    def_=random.randint(1, 99),
+                    defe=random.randint(1, 99),
                     phy=random.randint(1, 99)
                 )
                 jugador.save()

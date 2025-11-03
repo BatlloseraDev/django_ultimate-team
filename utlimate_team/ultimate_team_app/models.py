@@ -94,7 +94,7 @@ class Jugador(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(99)],
         help_text='Regate del jugador'
     )
-    def_ = models.IntegerField(
+    defe = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(99)],
         help_text='Defensa del jugador'
@@ -111,7 +111,7 @@ class Jugador(models.Model):
             'sho': self.sho,
             'pas': self.pas,
             'dri': self.dri,
-            'def': self.def_,
+            'def': self.defe,
             'phy': self.phy
         }
     def calcular_valoracion(self):
@@ -136,7 +136,10 @@ class Jugador(models.Model):
         valoracion = sum(estadisticas[stat] * peso for stat, peso in pesos.items())
         return round(valoracion)
 
-    estadistica_final = calcular_valoracion()
+    @property
+    def estadistica_final(self):
+        return self.calcular_valoracion()
+    #estadistica_final = calcular_valoracion()
 
     def __str__(self):
         return f'{self.nombre} - {self.estadistica_final}'
@@ -156,16 +159,10 @@ class Usuario(models.Model):
     nick = models.CharField(max_length=15, blank=False, null=False)
     correo = models.EmailField(max_length=30, blank=False, null=False, unique=True)
     password = models.CharField(max_length=15, blank=False, null=False)
-    rol = models.ManyToManyField(Rol, blank=False, null=False)
+    rol = models.ManyToManyField(Rol, blank=False)
     fecha_nacimiento = models.DateField()
     fecha_registro = models.DateTimeField(auto_now_add=True)
-    equipo = models.OneToOneField(
-    'Equipo',
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True,
-    related_name='propietario'
-    )
+
 
     def __str__(self):
         return self.nombre
@@ -192,7 +189,6 @@ class Equipo (models.Model):
         Jugador,
         related_name='equipos',
         blank=True,
-        null=True,
         help_text='Jugadores del equipo'
     )
 
