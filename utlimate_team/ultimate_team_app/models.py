@@ -168,13 +168,41 @@ class Rol(models.Model):
 
 class Usuario(models.Model):
     """Modelo que representa a los usuarios"""
-    nombre = models.CharField(max_length=20, blank=False, null=False)
-    nick = models.CharField(max_length=15, blank=False, null=False)
-    correo = models.EmailField(max_length=30, blank=False, null=False, unique=True)
-    password = models.CharField(max_length=15, blank=False, null=False)
-    rol = models.ManyToManyField(Rol, blank=False)
+    nombre = models.CharField(
+        max_length=20,
+        blank=False,
+        null=False
+    )
+
+    nick = models.CharField(
+        max_length=15,
+        blank=False,
+        null=False
+    )
+
+    correo = models.EmailField(
+        max_length=30,
+        blank=False,
+        null=False,
+        unique=True
+    )
+
+    password = models.CharField(
+        max_length=15,
+        blank=False,
+        null=False
+    )
+
+    rol = models.ManyToManyField(
+        Rol,
+        blank=False
+    )
+
     fecha_nacimiento = models.DateField()
-    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True
+    )
 
 
     def __str__(self):
