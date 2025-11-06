@@ -1,6 +1,7 @@
 from django.shortcuts import render
 import json
 from django.http import JsonResponse, request
+from django.views.decorators.csrf import csrf_exempt
 from .models import Usuario, Rol
 from datetime import datetime
 # Create your views here.
@@ -129,11 +130,13 @@ def update_user(request, id):
 
     return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
+@csrf_exempt
 def asignar_rol(request, id):
     if request.method == 'POST':
         try:
             usuario = Usuario.objects.get(id=id)
-            rol_nombre = request.POST.get('rol')
+            data = json.loads(request.body)
+            rol_nombre = data.get('rol')
 
             if not rol_nombre:
                 return JsonResponse({'ok': False, 'error': 'No se proporcionó el nombre del rol'}, status=400)
@@ -143,7 +146,10 @@ def asignar_rol(request, id):
             if not rol_asignado:
                 return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
 
-            usuario.rol = rol_asignado
+            if usuario.rol.filter(nombre=rol_nombre).exists():
+                return JsonResponse({'ok':False, 'error': 'El usuario ya tiene ese rol asignado'}, status=400)
+
+            usuario.rol.add(rol_asignado)
             usuario.save()
 
             return JsonResponse({'ok': True, 'mensaje': f'Rol "{rol_nombre}" asignado correctamente'}, status=200)
