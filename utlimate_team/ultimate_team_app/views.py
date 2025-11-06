@@ -165,11 +165,19 @@ def eliminar_rol(request, id):
     if request.method == 'POST':
         try:
             usuario = Usuario.objects.get(id=id)
-            rol_nombre = request.POST.get('rol')
+
+            data = json.loads(request.body)
+            rol_nombre = data.get('rol')
+
+
             if not rol_nombre:
                 return JsonResponse({'ok': False, 'error': 'No se proporcionó el nombre del rol'}, status=400)
 
             rol_desagsinar =  Rol.objects.filter(nombre=rol_nombre).first()
+
+            if not usuario.rol.filter(nombre=rol_nombre).exists():
+                return JsonResponse({'ok': False, 'error': 'El usuario no tenia ese rol'}, status=404)
+
             if not rol_desagsinar:
                 return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
 
