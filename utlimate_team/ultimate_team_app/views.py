@@ -161,6 +161,7 @@ def asignar_rol(request, id):
 
     return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
+@csrf_exempt
 def eliminar_rol(request, id):
     if request.method == 'POST':
         try:
@@ -189,3 +190,5 @@ def eliminar_rol(request, id):
             return JsonResponse({'ok': False, 'error': f'Error: {str(e)}'}, status=500)
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+    
