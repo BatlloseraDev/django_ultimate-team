@@ -37,7 +37,8 @@ class Command(BaseCommand):
                 equipo=False,
             )
             usuario.save()
-            #usuario.rol.add(rol_administrador)
+            rol_asignado = Rol.objects.get(nombre="administrador")
+            usuario.rol.add(rol_asignado)
 
         #Creación de nacionalidades
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ultimate_team.settings")

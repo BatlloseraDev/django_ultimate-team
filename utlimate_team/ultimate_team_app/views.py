@@ -154,3 +154,24 @@ def asignar_rol(request, id):
             return JsonResponse({'ok': False, 'error': f'Error: {str(e)}'}, status=500)
 
     return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+def eliminar_rol(request, id):
+    if request.method == 'POST':
+        try:
+            usuario = Usuario.objects.get(id=id)
+            rol_nombre = request.POST.get('rol')
+            if not rol_nombre:
+                return JsonResponse({'ok': False, 'error': 'No se proporcionó el nombre del rol'}, status=400)
+
+            rol_desagsinar =  Rol.objects.filter(nombre=rol_nombre).first()
+            if not rol_desagsinar:
+                return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
+
+            usuario.rol.remove(rol_desagsinar)
+            return JsonResponse({'ok': True, 'mensaje': 'Rol eliminado correctamente'}, status=200)
+        except Usuario.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Usuario no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error: {str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
