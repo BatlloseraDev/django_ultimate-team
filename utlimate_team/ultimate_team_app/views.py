@@ -1,8 +1,10 @@
 from django.shortcuts import render
+import random
+from django.db import IntegrityError
 import json
 from django.http import JsonResponse, request
 from django.views.decorators.csrf import csrf_exempt
-from .models import Usuario, Rol
+from .models import Usuario, Rol, Jugador, Equipo, Posicion
 from datetime import datetime
 # Create your views here.
 
@@ -31,11 +33,12 @@ def add_user(request):
                 nick=nick,
                 correo=correo,
                 password=password,
-                rol=rol,
                 fecha_nacimiento=fecha_nacimiento,
                 fecha_registro=fecha_registro,
                 equipo=equipo,
             )
+            if rol:
+                usuario.rol.set(rol)
 
             return JsonResponse({
                 'ok': True,
