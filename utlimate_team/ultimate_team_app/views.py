@@ -434,3 +434,61 @@ def update_jugador(request):
             return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+def add_jugador_equipo(request, id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            jugador = Jugador.objects.get(id=id)
+
+            if not Equipo.objects.filter(id_usuario=data.get('id_usuario')).exists():
+                return JsonResponse({'ok': False, 'error': 'No se ha encontrado nigun equipo con ese id de usuario'}, status=404)
+            equipo = Equipo.objects.get(id_usuario=data.get('id_usuario'))
+
+            if equipo.jugadores.filter(id=jugador.id).exists():
+                return JsonResponse({'ok': False, 'error': 'El jugador ya está en el equipo'}, status=400)
+
+            numero_jugadores_actual = equipo.jugadores.count()
+            max_jugadores_equipo = 25 #debería de ser una variable global para poder cambiar este parametro
+
+            if numero_jugadores_actual >= max_jugadores_equipo:
+                return JsonResponse({
+                    'ok': False,
+                    'error': f'El equipo ya tiene el máximo de {max_jugadores_equipo} jugadores'},
+                    status=400)
+
+            equipo.jugadores.add(jugador)
+            return JsonResponse({
+                'ok': True,
+                'mensaje': 'Jugador agregado al equipo correctamente',
+                'jugadores_en_equipo': equipo.jugadores.count()},
+                status=200)
+
+        except Jugador.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
+        except Equipo.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Equipo no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+def delete_jugador_equipo(request, id):
+    if request.method == 'DELETE':
+        try:
+            data = json.loads(request.body)
+            jugador = Jugador.objects.get(id=id)
+            equipo = Equipo.objects.get(id_usuario=data.get('id_usuario'))
+            if not equipo.jugadores.filter(id=jugador.id).exists():
+                return JsonResponse({'ok': False, 'error': 'El jugador no existe en el equipo'}, status=400)
+            equipo.jugadores.remove(jugador)
+            return JsonResponse({'ok': True, 'mensaje': 'Jugador eliminado del equipo correctamente'}, status=200)
+        except Jugador.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
+        except Equipo.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Equipo no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
