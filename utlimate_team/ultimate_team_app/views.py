@@ -136,8 +136,8 @@ def update_user(request, id):
     return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
 def asignar_jugadores_equipo(equipo):
-    """Asigna jugadores aleatorios sin equipo a un equipo dado."""
-    jugadores_disponibles = Jugador.objects.filter(equipo=None)
+    """Asigna jugadores aleatorios a un equipo dado."""
+    jugadores_disponibles = Jugador.objects.all()
 
     if jugadores_disponibles.count() < 23:
         raise ValueError('No hay suficientes jugadores disponibles para crear un equipo (mínimo 23).')
@@ -149,6 +149,8 @@ def asignar_jugadores_equipo(equipo):
 
     if len(porteros) < 2 or len(defensas) < 8 or len(centrocampistas) < 6 or len(delanteros) < 5:
         raise ValueError('No hay suficientes jugadores en alguna posición para formar un equipo completo.')
+
+    seleccionados=[]
 
     while not 23 <= len(seleccionados) <= 25:
         seleccionados = (
