@@ -12,4 +12,7 @@ urlpatterns = [
     path('update_user/<int:id>', views.update_user),
     path('asignar_equipo/<int:id>', views.asignar_equipo),
     path('consultar_equipo/<int:id>', views.consultar_equipo),
+    path('asignar_rol/<int:id>', views.asignar_rol),
+    path('eliminar_rol/<int:id>', views.eliminar_rol),
+
 ]
