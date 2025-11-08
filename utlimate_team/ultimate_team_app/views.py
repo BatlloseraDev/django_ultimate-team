@@ -1,14 +1,11 @@
-import random
 from django.shortcuts import render
 import json
 from django.http import JsonResponse, request
-from .models import Usuario, Equipo, Jugador
 from django.views.decorators.csrf import csrf_exempt
 from .models import Usuario, Rol
 from datetime import datetime
 # Create your views here.
 
-@csrf_exempt
 def add_user(request):
     if request.method == 'POST':
         try:
@@ -34,13 +31,11 @@ def add_user(request):
                 nick=nick,
                 correo=correo,
                 password=password,
+                rol=rol,
                 fecha_nacimiento=fecha_nacimiento,
                 fecha_registro=fecha_registro,
                 equipo=equipo,
             )
-
-            if rol:
-                usuario.rol.set(rol)
 
             return JsonResponse({
                 'ok': True,
@@ -322,3 +317,117 @@ def eliminar_rol(request, id):
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
+
+def add_jugador(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre')
+            nacionalidad = data.get('nacionalidad')
+            equipo = data.get('equipo')
+            posicion_id = Posicion.objects.get(tipo=data.get('posicion_id'))
+            pac = data.get('pac')
+            sho = data.get('sho')
+            pas = data.get('pas')
+            dri = data.get('dri')
+            defe = data.get('defe')
+            phy = data.get('phy')
+
+            jugador = Jugador.objects.create(
+                nombre=nombre,
+                nacionalidad=nacionalidad,
+                equipo=equipo,
+                posicion_id=posicion_id,
+                pac=pac,
+                sho=sho,
+                pas=pas,
+                dri=dri,
+                defe=defe,
+                phy=phy
+            )
+
+            return JsonResponse({'ok': True, 'jugador': jugador.nombre, 'id': jugador.id}, status=201)
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'error': 'JSON inválido'}, status=400)
+        except IntegrityError as e:
+            return JsonResponse({'ok': False, 'error': f'Error de base de datos: {str(e)}'}, status=400)
+        except ValueError as e:
+            return JsonResponse({'ok': False, 'error': f'Error de tipo de dato: {str(e)} '}, status=500)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido: {str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+def get_jugador(request):
+    if request.method == 'GET':
+        try:
+            id = request.GET.get('id')
+            jugador = Jugador.objects.get(id=id)
+            return JsonResponse({'ok': True, 'jugador': jugador.nombre}, status=200)
+        except Jugador.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
+        except ValueError as e:
+            return JsonResponse({'ok': False, 'error': str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+def get_jugadores(request):
+   if request.method == 'GET':
+       try:
+            jugadores = Jugador.objects.all()
+            return JsonResponse({'ok': True, 'jugadores': list(jugadores)}, status=200)
+       except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+   else:
+       return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+def delete_jugador(request):
+    if request.method == 'DELETE':
+        try:
+            id = request.GET.get('id')
+            jugador = Jugador.objects.get(id=id)
+            jugador.delete()
+            return JsonResponse({'ok': True}, status=200)
+        except Jugador.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+
+def update_jugador(request):
+    if request.method == 'PUT':
+        try:
+            id = request.GET.get('id')
+            jugador = Jugador.objects.get(id=id)
+            data = json.loads(request.body)
+
+            jugador.nombre = data.get('nombre')
+            jugador.nacionalidad = data.get('nacionalidad')
+            jugador.equipo = data.get('equipo')
+            jugador.posicion_id = Posicion.objects.get(tipo=data.get('posicion_id'))
+            jugador.pac = data.get('pac')
+            jugador.sho = data.get('sho')
+            jugador.pas = data.get('pas')
+            jugador.dri = data.get('dri')
+            jugador.defe = data.get('defe')
+            jugador.phy = data.get('phy')
+
+            jugador.save()
+            return JsonResponse({'ok': True, 'jugador': jugador.nombre}, status=200)
+        except Jugador.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
+        except IntegrityError as e:
+            return JsonResponse({'ok': False, 'error': f'Error de base de datos: {str(e)}'}, status=400)
+        except ValueError as e:
+            return JsonResponse({'ok': False, 'error': f'Error de tipo de dato: {str(e)} '}, status=500)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
