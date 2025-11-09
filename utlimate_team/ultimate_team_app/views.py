@@ -4,7 +4,7 @@ from django.db import IntegrityError
 import json
 from django.http import JsonResponse, request
 from django.views.decorators.csrf import csrf_exempt
-from .models import Usuario, Rol, Jugador, Equipo, Posicion
+from .models import Usuario, Rol, Jugador, Equipo, Posicion, Nacionalidad
 from datetime import datetime
 # Create your views here.
 
@@ -351,7 +351,7 @@ def add_jugador(request):
         try:
             data = json.loads(request.body)
             nombre = data.get('nombre')
-            nacionalidad = data.get('nacionalidad')
+            nacionalidad = Nacionalidad.objects.get(id=data.get('nacionalidad'))
             equipo = data.get('equipo')
             posicion_id = Posicion.objects.get(tipo=data.get('posicion_id'))
             pac = data.get('pac')
@@ -405,8 +405,21 @@ def get_jugador(request, id):
 def get_jugadores(request):
    if request.method == 'GET':
        try:
-            jugadores = Jugador.objects.all()
-            return JsonResponse({'ok': True, 'jugadores': list(jugadores)}, status=200)
+           jugadores = Jugador.objects.all()
+           jugadores_data = []
+           for jugador in jugadores:
+               jugadores_data.append({
+                   'id': jugador.id,
+                   'nombre': jugador.nombre,
+                   'equipo': jugador.equipo,
+                   'pac': jugador.pac,
+                   'sho': jugador.sho,
+                   'pas': jugador.pas,
+                   'dri': jugador.dri,
+                   'defe': jugador.defe,
+                   'phy': jugador.phy,
+               })
+           return JsonResponse({'ok': True, 'jugadores': jugadores_data}, status=200)
        except Exception as e:
             return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
    else:
@@ -451,7 +464,7 @@ def update_jugador(request):
             data = json.loads(request.body)
 
             jugador.nombre = data.get('nombre')
-            jugador.nacionalidad = data.get('nacionalidad')
+            jugador.nacionalidad = Nacionalidad.objects.get(id=data.get('nacionalidad')) #data.get('nacionalidad')
             jugador.equipo = data.get('equipo')
             jugador.posicion_id = Posicion.objects.get(tipo=data.get('posicion_id'))
             jugador.pac = data.get('pac')
