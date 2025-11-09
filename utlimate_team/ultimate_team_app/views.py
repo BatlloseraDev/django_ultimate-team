@@ -125,7 +125,7 @@ def update_user(request, id):
 
             for campo in data:
                 if campo not in campos:
-                    return JsonResponse({'ok': False, 'error': 'Campo no permitido'}, status=400)
+                    return JsonResponse({'ok': False, 'error': 'No existe ese campo'}, status=400)
 
             # Actualizar solo los campos que vienen en el body
             if 'nombre' in data:

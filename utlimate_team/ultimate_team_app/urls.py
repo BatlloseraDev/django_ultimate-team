@@ -10,8 +10,8 @@ urlpatterns = [
     path('get_users', views.get_users, name='get_users'),
     path('delete_user/<int:id>', views.delete_user, name='delete_user'),
     path('update_user/<int:id>', views.update_user, name='update_user'),
-    path('asignar_equipo/<int:id>', views.asignar_equipo),
-    path('consultar_equipo/<int:id>', views.consultar_equipo),
+    path('asignar_equipo/<int:id>', views.asignar_equipo, name='asignar_equipo'),
+    path('consultar_equipo/<int:id>', views.consultar_equipo, name='consultar_equipo'),
     path('asignar_rol/<int:id>', views.asignar_rol, name='asignar_rol'),
     path('eliminar_rol/<int:id>', views.eliminar_rol),
 

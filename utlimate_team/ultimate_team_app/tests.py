@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
-from .models import Usuario, Rol
+from .models import Usuario, Rol, Posicion, Jugador, Nacionalidad, Equipo
 
 
 # Create your tests here.
@@ -106,6 +106,7 @@ class AdminApiTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_actualizar_usuario_valido(self):
+        """Comprobamos que podemos actualizar el nombre de un usuario correctamente"""
         url=reverse('update_user', args=[self.usuario.id])
         data = {
             "nombre":"Laura"
@@ -116,6 +117,7 @@ class AdminApiTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_actualizar_usuario_error(self):
+        """Intentamos actualizar un campo que no existe"""
         url=reverse('update_user', args=[self.usuario.id])
         data={
             "apellido":"Frontón"
@@ -145,6 +147,7 @@ class RolApiTest(TestCase):
         cls.usuario.rol.set([rol])
 
     def test_asignar_rol_valido(self):
+        """Comprobamos que podemos asignar roles a los usuarios correctamente"""
         url = reverse('asignar_rol', args=[self.usuario.id])
         data={
             'rol':"usuario"
@@ -153,9 +156,86 @@ class RolApiTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_asignar_rol_error(self):
+        """Intentamos asignar un rol que no existe a un usuario"""
         url = reverse('asignar_rol', args=[self.usuario.id])
         data={
                 'rol':"gestor"
             }
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertEqual(response.status_code, 404)
+
+class UsuarioTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.rol_admin = Rol.objects.create(
+            nombre='administrador',
+        )
+
+        cls.rol_usuario = Rol.objects.create(
+            nombre='usuario',
+        )
+
+        cls.usuario = Usuario.objects.create(
+            nombre='marta',
+            nick='mar',
+            correo='marta@gmail.com',
+            password='12345',
+            fecha_nacimiento='2006-09-21'
+        )
+        rol = Rol.objects.get(nombre="administrador")
+        cls.usuario.rol.set([rol])
+
+        cls.pos_por, _ = Posicion.objects.get_or_create(tipo='POR', siglas='POR')
+        cls.pos_def, _ = Posicion.objects.get_or_create(tipo='DEF', siglas='DEF')
+        cls.pos_cen, _ = Posicion.objects.get_or_create(tipo='CEN', siglas='CEN')
+        cls.pos_del, _ = Posicion.objects.get_or_create(tipo='DEL', siglas='DEL')
+
+
+        cls.nacionalidad = Nacionalidad.objects.create(nombre='España')
+
+
+        for i in range(3):
+            Jugador.objects.create(nombre=f'Portero {i}', posicion_id=cls.pos_por, nacionalidad=cls.nacionalidad)
+        for i in range(10):
+            Jugador.objects.create(nombre=f'Defensa {i}', posicion_id=cls.pos_def, nacionalidad=cls.nacionalidad)
+        for i in range(9):
+            Jugador.objects.create(nombre=f'Centrocampista {i}', posicion_id=cls.pos_cen, nacionalidad=cls.nacionalidad)
+        for i in range(6):
+            Jugador.objects.create(nombre=f'Delantero {i}', posicion_id=cls.pos_del, nacionalidad=cls.nacionalidad)
+
+    def test_asignar_equipo_valido(self):
+        """Comprobamos que podemos asignar un equipo a un usuario correctamente"""
+        url = reverse('asignar_equipo', args=[self.usuario.id])
+        data={
+          "nombre": "Argamasilla",
+          "descripcion": "Equipo con espíritu competitivo"
+        }
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+
+    def test_asignar_equipo_error(self):
+        """Intentamos asignar un equipo a un usuario que ya tiene un equipo"""
+        Equipo.objects.create(
+            nombre="Equipo previo",
+            id_usuario=self.usuario,
+            descripcion="Equipo ya existente"
+        )
+
+        url = reverse('asignar_equipo', args=[self.usuario.id])
+        data = {"nombre": "Argamasilla", "descripcion": "Equipo con espíritu competitivo"}
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_consultar_equipo_valido(self):
+        """Comprobamos que podemos consultar el equipo de un usuario correctamente"""
+        # Primero asignamos un equipo
+        url_asignar = reverse('asignar_equipo', args=[self.usuario.id])
+        data = {"nombre": "Argamasilla", "descripcion": "Equipo con espíritu competitivo"}
+        self.client.post(url_asignar, data=data, content_type="application/json")
+
+        url_consultar = reverse('consultar_equipo', args=[self.usuario.id])
+        response = self.client.get(url_consultar, data={}, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+
+
