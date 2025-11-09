@@ -148,6 +148,10 @@ class Jugador(models.Model):
         return self.calcular_valoracion()
     #estadistica_final = calcular_valoracion()
 
+    desactivado = models.BooleanField(
+        default=False
+    )
+
     def __str__(self):
         return f'{self.nombre} - {self.estadistica_final}'
 

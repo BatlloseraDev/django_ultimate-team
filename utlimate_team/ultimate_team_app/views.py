@@ -320,7 +320,7 @@ def eliminar_rol(request, id):
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
-
+@csrf_exempt
 def add_jugador(request):
     if request.method == 'POST':
         try:
@@ -362,10 +362,9 @@ def add_jugador(request):
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
 
-def get_jugador(request):
+def get_jugador(request, id):
     if request.method == 'GET':
         try:
-            id = request.GET.get('id')
             jugador = Jugador.objects.get(id=id)
             return JsonResponse({'ok': True, 'jugador': jugador.nombre}, status=200)
         except Jugador.DoesNotExist:
@@ -387,14 +386,29 @@ def get_jugadores(request):
             return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
    else:
        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
-
-def delete_jugador(request):
+@csrf_exempt
+def delete_jugador(request, id):
     if request.method == 'DELETE':
         try:
-            id = request.GET.get('id')
             jugador = Jugador.objects.get(id=id)
-            jugador.delete()
-            return JsonResponse({'ok': True}, status=200)
+
+            equipos_con_jugador = Equipo.objects.filter(jugadores=jugador)
+
+            if equipos_con_jugador.exists():
+                nombres_equipos = list(equipos_con_jugador.values_list('nombre', flat=True))
+                return JsonResponse({
+                    'ok': False,
+                    'error': f'No se puede eliminar el jugador. Está asignado a los equipos: {", ".join(nombres_equipos)}. Retire al jugador de todos los equipos antes de eliminarlo.'
+                }, status=400)
+
+            jugador.desactivado = True
+            jugador.save()
+
+            return JsonResponse({
+                'ok': True,
+                'mensaje': 'Jugador eliminado correctamente (eliminación pasiva)'
+            }, status=200)
+
         except Jugador.DoesNotExist:
             return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
         except Exception as e:
@@ -403,7 +417,7 @@ def delete_jugador(request):
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
 
-
+@csrf_exempt
 def update_jugador(request):
     if request.method == 'PUT':
         try:
@@ -435,7 +449,7 @@ def update_jugador(request):
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
-
+@csrf_exempt
 def add_jugador_equipo(request, id):
     if request.method == 'POST':
         try:
@@ -474,6 +488,7 @@ def add_jugador_equipo(request, id):
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
 
+@csrf_exempt
 def delete_jugador_equipo(request, id):
     if request.method == 'DELETE':
         try:
