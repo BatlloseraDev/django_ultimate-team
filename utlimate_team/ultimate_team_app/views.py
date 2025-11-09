@@ -4,10 +4,11 @@ from django.db import IntegrityError
 import json
 from django.http import JsonResponse, request
 from django.views.decorators.csrf import csrf_exempt
-from .models import Usuario, Rol, Jugador, Equipo, Posicion
+from .models import Usuario, Rol, Jugador, Equipo, Posicion, Nacionalidad
 from datetime import datetime
 # Create your views here.
 
+@csrf_exempt
 def add_user(request):
     if request.method == 'POST':
         try:
@@ -16,13 +17,18 @@ def add_user(request):
             nick = data.get('nick')
             correo = data.get('correo')
             password = data.get('password')
-            rol = data.get('rol')
+            rol_nombre = data.get('rol')
             fecha_nacimiento = data.get('fecha_nacimiento')
             fecha_registro = data.get('fecha_registro')
             equipo = data.get('equipo')
 
-            if not (nombre and correo):
+            if not (password and correo and nombre):
                 return JsonResponse({'ok': False, 'error': 'Faltan campos obligatorios'}, status=400)
+
+            correos = Usuario.objects.values_list('correo', flat=True)
+
+            if correo in correos:
+                return JsonResponse({'ok': False, 'error': 'Correo ya existente'}, status=400)
 
             # Convertir la fecha
             fecha_nacimiento = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
@@ -37,8 +43,20 @@ def add_user(request):
                 fecha_registro=fecha_registro,
                 equipo=equipo,
             )
-            if rol:
-                usuario.rol.set(rol)
+
+            if not rol_nombre:
+                return JsonResponse({'ok': False, 'error': 'No se proporcionó el nombre del rol'}, status=400)
+
+            rol_asignado = Rol.objects.filter(nombre=rol_nombre).first()
+
+            if not rol_asignado:
+                return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
+
+            if usuario.rol.filter(nombre=rol_nombre).exists():
+                return JsonResponse({'ok': False, 'error': 'El usuario ya tiene ese rol asignado'}, status=400)
+
+            usuario.rol.add(rol_asignado)
+            usuario.save()
 
             return JsonResponse({
                 'ok': True,
@@ -48,7 +66,7 @@ def add_user(request):
                     'fecha_registro': fecha_registro
                 }
 
-            }, status=200  )
+            }, status=201  )
 
 
         except json.JSONDecodeError:
@@ -67,12 +85,10 @@ def add_user(request):
 # Mostrar todos los usuarios
 def get_users(request):
     if request.method == 'GET':
-      try:
         usuarios = Usuario.objects.all().values()
         return JsonResponse({'ok': True, 'usuarios': list(usuarios)}, status=200)
-      except:
+    else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
-
 
 #Mostrar a un usuario por id
 def get_user(request, id):
@@ -103,6 +119,13 @@ def update_user(request, id):
         try:
             usuario = Usuario.objects.get(id=id)
             data = json.loads(request.body)
+
+            campos = ['nombre', 'nick', 'correo', 'password', 'rol', 'fecha_nacimiento', 'fecha_registro',
+                              'equipo']
+
+            for campo in data:
+                if campo not in campos:
+                    return JsonResponse({'ok': False, 'error': 'No existe ese campo'}, status=400)
 
             # Actualizar solo los campos que vienen en el body
             if 'nombre' in data:
@@ -328,7 +351,7 @@ def add_jugador(request):
         try:
             data = json.loads(request.body)
             nombre = data.get('nombre')
-            nacionalidad = data.get('nacionalidad')
+            nacionalidad = Nacionalidad.objects.get(id=data.get('nacionalidad'))
             equipo = data.get('equipo')
             posicion_id = Posicion.objects.get(tipo=data.get('posicion_id'))
             pac = data.get('pac')
@@ -382,8 +405,21 @@ def get_jugador(request, id):
 def get_jugadores(request):
    if request.method == 'GET':
        try:
-            jugadores = Jugador.objects.all()
-            return JsonResponse({'ok': True, 'jugadores': list(jugadores)}, status=200)
+           jugadores = Jugador.objects.all()
+           jugadores_data = []
+           for jugador in jugadores:
+               jugadores_data.append({
+                   'id': jugador.id,
+                   'nombre': jugador.nombre,
+                   'equipo': jugador.equipo,
+                   'pac': jugador.pac,
+                   'sho': jugador.sho,
+                   'pas': jugador.pas,
+                   'dri': jugador.dri,
+                   'defe': jugador.defe,
+                   'phy': jugador.phy,
+               })
+           return JsonResponse({'ok': True, 'jugadores': jugadores_data}, status=200)
        except Exception as e:
             return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
    else:
@@ -428,7 +464,7 @@ def update_jugador(request):
             data = json.loads(request.body)
 
             jugador.nombre = data.get('nombre')
-            jugador.nacionalidad = data.get('nacionalidad')
+            jugador.nacionalidad = Nacionalidad.objects.get(id=data.get('nacionalidad')) #data.get('nacionalidad')
             jugador.equipo = data.get('equipo')
             jugador.posicion_id = Posicion.objects.get(tipo=data.get('posicion_id'))
             jugador.pac = data.get('pac')
