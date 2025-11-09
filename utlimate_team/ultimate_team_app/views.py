@@ -8,6 +8,7 @@ from .models import Usuario, Rol, Jugador, Equipo, Posicion
 from datetime import datetime
 # Create your views here.
 
+@csrf_exempt
 def add_user(request):
     if request.method == 'POST':
         try:
@@ -48,7 +49,7 @@ def add_user(request):
                     'fecha_registro': fecha_registro
                 }
 
-            }, status=200  )
+            }, status=201  )
 
 
         except json.JSONDecodeError:
@@ -67,12 +68,10 @@ def add_user(request):
 # Mostrar todos los usuarios
 def get_users(request):
     if request.method == 'GET':
-      try:
         usuarios = Usuario.objects.all().values()
         return JsonResponse({'ok': True, 'usuarios': list(usuarios)}, status=200)
-      except:
+    else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
-
 
 #Mostrar a un usuario por id
 def get_user(request, id):
