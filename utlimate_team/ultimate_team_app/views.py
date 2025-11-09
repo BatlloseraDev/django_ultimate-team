@@ -19,7 +19,6 @@ def add_user(request):
             password = data.get('password')
             rol_nombre = data.get('rol')
             fecha_nacimiento = data.get('fecha_nacimiento')
-            fecha_registro = data.get('fecha_registro')
             equipo = data.get('equipo')
 
             if not (password and correo and nombre):
@@ -40,7 +39,6 @@ def add_user(request):
                 correo=correo,
                 password=password,
                 fecha_nacimiento=fecha_nacimiento,
-                fecha_registro=fecha_registro,
                 equipo=equipo,
             )
 
@@ -62,8 +60,7 @@ def add_user(request):
                 'ok': True,
                 'data': {
                     'nombre': nombre,
-                    'nick': nick,
-                    'fecha_registro': fecha_registro
+                    'nick': nick
                 }
 
             }, status=201  )
@@ -120,8 +117,7 @@ def update_user(request, id):
             usuario = Usuario.objects.get(id=id)
             data = json.loads(request.body)
 
-            campos = ['nombre', 'nick', 'correo', 'password', 'rol', 'fecha_nacimiento', 'fecha_registro',
-                              'equipo']
+            campos = ['nombre', 'nick', 'correo', 'password', 'rol', 'fecha_nacimiento','equipo']
 
             for campo in data:
                 if campo not in campos:
@@ -133,15 +129,17 @@ def update_user(request, id):
             if 'nick' in data:
                 usuario.nick = data['nick']
             if 'correo' in data:
-                usuario.correo = data['correo']
+                nuevo_correo = data['correo']
+                if Usuario.objects.filter(correo=nuevo_correo).exclude(id=id).exists():
+                    return JsonResponse({'ok': False, 'error': 'El correo ya está en uso por otro usuario'}, status=400)
+                usuario.correo = nuevo_correo
+
             if 'password' in data:
                 usuario.password = data['password']
             if 'rol' in data:
                 usuario.rol = data['rol']
             if 'fecha_nacimiento' in data:
                 usuario.fecha_nacimiento = datetime.strptime(data['fecha_nacimiento'], '%Y-%m-%d').date()
-            if 'fecha_registro' in data:
-                usuario.fecha_registro = datetime.strptime(data['fecha_registro'], '%Y-%m-%d %H:%M:%S')
             if 'equipo' in data:
                 usuario.equipo = data['equipo']
 
