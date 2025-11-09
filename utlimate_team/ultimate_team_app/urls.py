@@ -14,5 +14,13 @@ urlpatterns = [
     path('consultar_equipo/<int:id>', views.consultar_equipo, name='consultar_equipo'),
     path('asignar_rol/<int:id>', views.asignar_rol, name='asignar_rol'),
     path('eliminar_rol/<int:id>', views.eliminar_rol),
+    path('add_jugador', views.add_jugador,name='add_jugador'),
+    path('get_jugador/<int:id>', views.get_jugador,name='get_jugador'),
+    path('get_jugadores', views.get_jugadores,name='get_jugadores'),
+    path('delete_jugador/<int:id>', views.delete_jugador,name='delete_jugador'),
+    path('update_jugador/', views.update_jugador,name='update_jugador'),
+    path('add_jugador_equipo/<int:id>', views.add_jugador_equipo,name='add_jugador_equipo'),
+    path('delete_jugador_equipo/<int:id>', views.delete_jugador_equipo,name='delete_jugador_equipo'),
+
 
 ]
