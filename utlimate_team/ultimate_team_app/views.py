@@ -17,13 +17,18 @@ def add_user(request):
             nick = data.get('nick')
             correo = data.get('correo')
             password = data.get('password')
-            rol = data.get('rol')
+            rol_nombre = data.get('rol')
             fecha_nacimiento = data.get('fecha_nacimiento')
             fecha_registro = data.get('fecha_registro')
             equipo = data.get('equipo')
 
-            if not (nombre and correo):
+            if not (password and correo and nombre):
                 return JsonResponse({'ok': False, 'error': 'Faltan campos obligatorios'}, status=400)
+
+            correos = Usuario.objects.values_list('correo', flat=True)
+
+            if correo in correos:
+                return JsonResponse({'ok': False, 'error': 'Correo ya existente'}, status=400)
 
             # Convertir la fecha
             fecha_nacimiento = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
@@ -38,8 +43,20 @@ def add_user(request):
                 fecha_registro=fecha_registro,
                 equipo=equipo,
             )
-            if rol:
-                usuario.rol.set(rol)
+
+            if not rol_nombre:
+                return JsonResponse({'ok': False, 'error': 'No se proporcionó el nombre del rol'}, status=400)
+
+            rol_asignado = Rol.objects.filter(nombre=rol_nombre).first()
+
+            if not rol_asignado:
+                return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
+
+            if usuario.rol.filter(nombre=rol_nombre).exists():
+                return JsonResponse({'ok': False, 'error': 'El usuario ya tiene ese rol asignado'}, status=400)
+
+            usuario.rol.add(rol_asignado)
+            usuario.save()
 
             return JsonResponse({
                 'ok': True,
@@ -102,6 +119,13 @@ def update_user(request, id):
         try:
             usuario = Usuario.objects.get(id=id)
             data = json.loads(request.body)
+
+            campos = ['nombre', 'nick', 'correo', 'password', 'rol', 'fecha_nacimiento', 'fecha_registro',
+                              'equipo']
+
+            for campo in data:
+                if campo not in campos:
+                    return JsonResponse({'ok': False, 'error': 'Campo no permitido'}, status=400)
 
             # Actualizar solo los campos que vienen en el body
             if 'nombre' in data:
