@@ -1,3 +1,5 @@
+from math import trunc
+
 from django.shortcuts import render
 import random
 from django.db import IntegrityError
@@ -539,6 +541,64 @@ def delete_jugador_equipo(request, id):
             return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
         except Equipo.DoesNotExist:
             return JsonResponse({'ok': False, 'error': 'Equipo no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+def media_jugador_equipo(request, id):
+    if request.method == 'GET':
+        try:
+            usuario = Usuario.objects.get(id=id)
+            #usuario = Usuario.objects.get(nombre='Delfina') id =18
+
+            #restricciones
+            if not Equipo.objects.filter(id_usuario=usuario.id).exists():
+                return JsonResponse({'ok': False, 'error': 'El usuario no tiene ningún equipo asignado'}, status=400)
+            equipo = Equipo.objects.get(id_usuario=usuario.id)
+            if equipo.jugadores.count() == 0:
+                return JsonResponse({'ok': False, 'error': 'El usuario no tiene ningún jugador asignado a su equipo'}, status=400)
+
+            jugadores_activos = 0
+            porteros = 0
+
+
+            for jugador in equipo.jugadores.all():
+                if not jugador.desactivado:
+                    jugadores_activos += 1
+                    if f'{jugador.posicion_id}' == 'Portero':
+                        porteros += 1
+
+
+            if jugadores_activos < 20:
+                return JsonResponse({'ok': False, 'error': 'El usuario no tiene al menos de 20 jugadores activos, no se ha hecho el calculo'}, status=400)
+            if porteros < 2:
+                return JsonResponse({'ok': False,'error': 'El usuario no tiene al menos de 2 porteros, no se ha hecho el calculo'}, status=400)
+
+            #calculo:
+            sumatorio = 0
+            for jugador in equipo.jugadores.all():
+                if not jugador.desactivado:
+                    sumatorio += jugador.estadistica_final
+
+            resultado_final = sumatorio / len(equipo.jugadores.all())
+
+            equipo.valoracion_media = resultado_final # el modelo ya lo trunca automaticamente
+            equipo.save()
+            estrellas = ''
+            calculo_estrellas = equipo.valoracion_media
+
+            while calculo_estrellas > 0:
+                estrellas += '*'
+                calculo_estrellas -= 20
+
+            return JsonResponse({'ok': True, 'media global numérica':trunc(resultado_final), 'numero de jugadores': jugadores_activos, 'estrellas': estrellas }, status=200)
+
+        except Equipo.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Equipo no encontrado'}, status=404)
+        except Usuario.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Usuario no encontrado'}, status=404)
         except Exception as e:
             return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
     else:

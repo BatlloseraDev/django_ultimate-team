@@ -236,6 +236,13 @@ class Equipo (models.Model):
         blank=True,
         help_text='Jugadores del equipo'
     )
+    valoracion_media = models.DecimalField(
+        decimal_places=2,
+        default=0,
+        max_digits=5,
+        blank=False,
+        null=False,
+    )
 
     def __str__(self):
         return self.nombre

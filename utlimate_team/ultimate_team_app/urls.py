@@ -21,6 +21,7 @@ urlpatterns = [
     path('update_jugador/', views.update_jugador,name='update_jugador'),
     path('add_jugador_equipo/<int:id>', views.add_jugador_equipo,name='add_jugador_equipo'),
     path('delete_jugador_equipo/<int:id>', views.delete_jugador_equipo,name='delete_jugador_equipo'),
+    path('media_jugador_equipo/<int:id>', views.media_jugador_equipo, name='media_jugador_equipo'),
 
 
 ]

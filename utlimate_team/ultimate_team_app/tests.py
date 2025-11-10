@@ -607,4 +607,85 @@ class UsuarioTest(TestCase):
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
 
+class ExamenTest(TestCase):
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.rol_usuario = Rol.objects.create(
+            nombre='usuario',
+        )
+
+        cls.usuario = Usuario.objects.create(
+            nombre='vic',
+            nick='v',
+            correo='v@gmail.com',
+            password='12345',
+            fecha_nacimiento='1997-09-28'
+        )
+        rol = Rol.objects.get(nombre="usuario")
+        cls.usuario.rol.set([rol])
+
+        cls.pos_por =  Posicion.objects.create(
+            siglas = 'POR',
+            significado = 'Portero',
+            tipo= Posicion.TipoPosicion.PORTERO,
+            descripcion = 'La persona que a veces para una pelota entre 3 palos',
+        )
+
+        cls.pos_def, _ = Posicion.objects.get_or_create(tipo='DEF', siglas='DEF')
+        cls.pos_cen, _ = Posicion.objects.get_or_create(tipo='CEN', siglas='CEN')
+        cls.pos_del, _ = Posicion.objects.get_or_create(tipo='DEL', siglas='DEL')
+
+
+        cls.nacionalidad = Nacionalidad.objects.create(nombre='España')
+
+        for i in range(10):
+            Jugador.objects.create(nombre=f'Portero {i}', posicion_id=cls.pos_por, nacionalidad=cls.nacionalidad)
+        for i in range(10):
+            Jugador.objects.create(nombre=f'Defensa {i}', posicion_id=cls.pos_def, nacionalidad=cls.nacionalidad)
+        for i in range(9):
+            Jugador.objects.create(nombre=f'Centrocampista {i}', posicion_id=cls.pos_cen, nacionalidad=cls.nacionalidad)
+        for i in range(6):
+            Jugador.objects.create(nombre=f'Delantero {i}', posicion_id=cls.pos_del, nacionalidad=cls.nacionalidad)
+
+
+    def test_examen_valido(self):
+
+        #primero asigno un equipo
+        url_asignar = reverse('asignar_equipo', args=[self.usuario.id])
+        data = {"nombre": "Argamasilla", "descripcion": "Equipo con espíritu competitivo"}
+        self.client.post(url_asignar, data=data, content_type="application/json")
+
+        #  url = reverse('get_jugador', args=[999])
+
+        url_calculo= reverse('media_jugador_equipo', args=[self.usuario.id])
+        response = self.client.get(url_calculo, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+
+    def test_examen_invalido_menos20Jug(self):
+        #primero asigno un equipo
+        url_asignar = reverse('asignar_equipo', args=[self.usuario.id])
+        data = {"nombre": "Argamasilla", "descripcion": "Equipo con espíritu competitivo"}
+        self.client.post(url_asignar, data=data, content_type="application/json")
+
+        #luego quito jugadores
+        equipo = Equipo.objects.get(id_usuario=self.usuario.id)
+        jugadores_desactivados = 0
+        for jugadores in equipo.jugadores.all():
+           if f'{jugadores.posicion_id}' != 'Portero'  and jugadores_desactivados < 10:
+               jugadores.delete()
+               jugadores_desactivados += 1
+
+
+        url_calculo = reverse('media_jugador_equipo', args=[self.usuario.id])
+        response = self.client.get(url_calculo, content_type="application/json")
+        print(response.content)
+        self.assertEqual(response.status_code, 400)
+
+    def test_examen_invalido_sin_equipo(self):
+
+        url_calculo = reverse('media_jugador_equipo', args=[self.usuario.id])
+        response = self.client.get(url_calculo, content_type="application/json")
+        #print(response.content)
+        self.assertEqual(response.status_code, 400)
