@@ -237,6 +237,11 @@ class Equipo (models.Model):
         help_text='Jugadores del equipo'
     )
 
+    media = models.FloatField(
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
         return self.nombre
 

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render
 import random
 from django.db import IntegrityError
@@ -543,3 +544,38 @@ def delete_jugador_equipo(request, id):
             return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
     else:
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+@csrf_exempt
+def media_total_equipo(request, id_usuario):
+    if request.method == 'POST':
+        try:
+            usuario = Usuario.objects.get(id=id_usuario)
+            equipo = Equipo.objects.get(id_usuario=id_usuario)
+            jugadores_equipo = equipo.jugadores.filter(desactivado=False).all()
+            porteros = jugadores_equipo.filter(posicion_id=1)
+            #No es necesario pero controlamos la cantidad de jugadores
+            if len(jugadores_equipo) < 20:
+                return JsonResponse({'ok': False, 'error': 'Tienes menos de 20 jugadores activos'}, status=404)
+            if len(porteros)<2:
+                return JsonResponse({'ok': False, 'error': 'Tienes menos de 2 porteros activos'}, status=404)
+            num_jugadores = len(jugadores_equipo)
+            total_valoraciones=0
+            for jugador in jugadores_equipo:
+                valoracion=jugador.calcular_valoracion()
+                total_valoraciones+=valoracion
+            media = round(total_valoraciones/num_jugadores,2)
+            equipo.media = media
+            estrellas = round(media/20+1,1)
+
+            equipo.save()
+            return JsonResponse({'ok':True, "mensaje":"Media asignada correctamente", 'media': media, 'número jugadores':num_jugadores, 'estrellas':estrellas}, status=200)
+        except Usuario.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'El usuario no existe'}, status=404)
+        except Jugador.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Jugador no encontrado'}, status=404)
+        except Equipo.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'El usuario no tiene ningún equipo asignado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error desconocido:{str(e)}'}, status=500)
+    else:
+        return JsonResponse({'ok':False, 'error':'Método no permitido'}, status=405)

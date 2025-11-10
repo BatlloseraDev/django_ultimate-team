@@ -475,6 +475,7 @@ class UsuarioTest(TestCase):
         for i in range(6):
             Jugador.objects.create(nombre=f'Delantero {i}', posicion_id=cls.pos_del, nacionalidad=cls.nacionalidad)
 
+
     def test_asignar_equipo_valido(self):
         """Comprobamos que podemos asignar un equipo a un usuario correctamente"""
         url = reverse('asignar_equipo', args=[self.usuario.id])
@@ -606,5 +607,23 @@ class UsuarioTest(TestCase):
         url = reverse('delete_jugador_equipo', args=[jugador_extra.id])
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+
+
+    def test_media_total_equipo_exito(self):
+        url1 = reverse('asignar_equipo', args=[self.usuario.id])
+        data = {
+            "nombre": "Argamasilla",
+            "descripcion": "Equipo con espíritu competitivo"
+        }
+        response = self.client.post(url1, data=data, content_type="application/json")
+        url2 = reverse('media_total_equipo', args=[self.usuario.id])
+        response2 = self.client.get(url2, data, content_type="application/json")
+        self.assertEqual(response2.status_code, 200)
+
+    def test_media_total_equipo_no_equipo(self):
+        url = reverse('media_total_equipo', args=[self.usuario.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
 
 
